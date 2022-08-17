@@ -62,8 +62,6 @@ latex
 # Common temp files
 ibnet_out
 sweep_out
-scripts/autorun_process_file
-scripts/autorun_app_file
 gdb_history
 *.swp
 src/config.h
