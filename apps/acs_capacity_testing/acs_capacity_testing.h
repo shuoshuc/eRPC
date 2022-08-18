@@ -79,6 +79,8 @@ class AppContext : public BasicAppContext {
 
   size_t stat_rx_bytes_tot = 0;  // Total bytes received
   size_t stat_tx_bytes_tot = 0;  // Total bytes transmitted
+  size_t stat_rx_query_tot = 0;  // Total queries received
+  size_t stat_tx_query_tot = 0;  // Total queries transmitted
 
   uint64_t req_ts[kAppMaxConcurrency];  // Per-request timestamps
   erpc::MsgBuffer req_msgbuf[kAppMaxConcurrency];
