@@ -17,10 +17,9 @@
 #include <signal.h>
 #include <cstring>
 #include "profile_incast.h"
-#include "profile_victim.h"
 #include "util/autorun_helpers.h"
 
-static constexpr size_t kAppEvLoopMs = 1000;  // Duration of event loop
+static constexpr size_t kAppEvLoopMs = 1000;  // Duration of event loop in msec.
 static constexpr bool kAppVerbose = false;
 
 // Experiment control flags
@@ -248,27 +247,10 @@ void thread_func(size_t thread_id, app_stats_t *app_stats, erpc::Nexus *nexus) {
   // We don't disconnect sessions
 }
 
-// Use the supplied profile set up globals and possibly modify other flags
-void setup_profile() {
-  if (FLAGS_profile == "incast") {
-    connect_sessions_func = connect_sessions_func_incast;
-    return;
-  }
-
-  if (FLAGS_profile == "victim") {
-    erpc::rt_assert(FLAGS_num_processes >= 3, "Too few processes");
-    erpc::rt_assert(FLAGS_num_proc_other_threads >= 2, "Too few threads");
-    connect_sessions_func = connect_sessions_func_victim;
-    return;
-  }
-}
-
 int main(int argc, char **argv) {
   signal(SIGINT, ctrl_c_handler);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   erpc::rt_assert(FLAGS_concurrency <= kAppMaxConcurrency, "Invalid conc");
-  erpc::rt_assert(FLAGS_profile == "incast" || FLAGS_profile == "victim",
-                  "Invalid profile");
   erpc::rt_assert(FLAGS_process_id < FLAGS_num_processes, "Invalid process ID");
 
   if (!erpc::kTesting) {
@@ -277,7 +259,7 @@ int main(int argc, char **argv) {
     erpc::rt_assert(FLAGS_drop_prob < 1, "Invalid drop prob");
   }
 
-  setup_profile();
+  connect_sessions_func = connect_sessions_func_incast;
   erpc::rt_assert(connect_sessions_func != nullptr, "No connect_sessions_func");
 
   erpc::Nexus nexus(erpc::get_uri_for_process(FLAGS_process_id),

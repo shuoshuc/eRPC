@@ -6,7 +6,6 @@
 --num_proc_other_threads 1
 --concurrency 1
 --drop_prob 0.0
---profile incast
 --throttle 0
 --throttle_fraction 0.9
 --numa_0_ports 0
