@@ -22,10 +22,9 @@ DEFINE_uint64(num_proc_other_threads, 0, "Threads in process with ID != 0");
 DEFINE_uint64(req_size, 0, "Request data size");
 DEFINE_uint64(resp_size, 0, "Response data size");
 DEFINE_uint64(concurrency, 0, "Concurrent requests per thread");
-DEFINE_double(drop_prob, 0, "Packet drop probability");
-DEFINE_string(profile, "", "Experiment profile to use");
 DEFINE_double(throttle, 0, "Throttle flows to incast receiver?");
 DEFINE_double(throttle_fraction, 1, "Fraction of fair share to throttle to.");
+DEFINE_string(erpc_local_uri, "localhost:31850", "Local URI this process listens on.");
 
 struct app_stats_t {
   double rx_gbps;
