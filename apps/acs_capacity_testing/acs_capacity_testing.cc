@@ -26,7 +26,7 @@ static constexpr bool kAppClientMemsetReq = false;   // Fill entire request
 static constexpr bool kAppServerMemsetResp = false;  // Fill entire response
 static constexpr bool kAppClientCheckResp = false;   // Check entire response
 
-void connect_sessions_func_incast(AppContext *c) {
+void connect_sessions_func(AppContext *c) {
   // All non-zero processes create one session to process #0
   if (FLAGS_process_id == 0) return;
 
@@ -41,25 +41,14 @@ void connect_sessions_func_incast(AppContext *c) {
       c->thread_id_, rem_tid);
 
   c->session_num_vec_[0] =
-      c->rpc_->create_session(erpc::get_uri_for_process(0), rem_tid);
+      c->rpc_->create_session(FLAGS_erpc_server_uri, rem_tid);
   erpc::rt_assert(c->session_num_vec_[0] >= 0, "create_session() failed");
 
   while (c->num_sm_resps_ != 1) {
     c->rpc_->run_event_loop(200);  // 200 milliseconds
     if (ctrl_c_pressed == 1) return;
   }
-
-  if (FLAGS_throttle == 1) {
-    erpc::Timely *timely_0 = c->rpc_->get_timely(c->session_num_vec_[0]);
-    double num_flows = (FLAGS_num_processes - 1) * FLAGS_num_proc_other_threads;
-    double fair_share = c->rpc_->get_bandwidth() / num_flows;
-
-    timely_0->rate_ = fair_share * FLAGS_throttle_fraction;
-  }
 }
-
-// Profile-specifc session connection function
-std::function<void(AppContext *)> connect_sessions_func = nullptr;
 
 void app_cont_func(void *, void *);  // Forward declaration
 
@@ -282,9 +271,6 @@ int main(int argc, char **argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   erpc::rt_assert(FLAGS_concurrency <= kAppMaxConcurrency, "Invalid conc");
   erpc::rt_assert(FLAGS_process_id < FLAGS_num_processes, "Invalid process ID");
-
-  connect_sessions_func = connect_sessions_func_incast;
-  erpc::rt_assert(connect_sessions_func != nullptr, "No connect_sessions_func");
 
   erpc::Nexus nexus(FLAGS_erpc_local_uri, FLAGS_numa_node, 0);
   nexus.register_req_func(kAppReqType, req_handler);

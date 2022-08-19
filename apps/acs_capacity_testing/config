@@ -1,12 +1,11 @@
 --test_ms 30000
---req_size 7900000
---resp_size 32
+--req_size 160
+--resp_size 4800
 --num_processes 2
 --num_proc_0_threads 1
 --num_proc_other_threads 1
 --concurrency 1
---drop_prob 0.0
---throttle 0
---throttle_fraction 0.9
 --numa_0_ports 0
 --numa_1_ports 1
+--erpc-local-uri roce69:31850
+--erpc-server-uri roce69:31850
