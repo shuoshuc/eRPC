@@ -43,7 +43,7 @@ void connect_sessions_func(AppContext *c) {
   c->session_num_vec_.resize(1);
 
   printf(
-      "large_rpc_tput: Thread %zu: Creating 1 session to proc 0, thread %zu.\n",
+      "large_rpc_tput: Thread %zu: Creating 1 session to server, thread %zu.\n",
       c->thread_id_, rem_tid);
 
   c->session_num_vec_[0] =
@@ -276,7 +276,6 @@ int main(int argc, char **argv) {
   signal(SIGINT, ctrl_c_handler);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   erpc::rt_assert(FLAGS_concurrency <= kAppMaxConcurrency, "Invalid concurrency");
-  erpc::rt_assert(FLAGS_process_id < FLAGS_num_processes, "Invalid process ID");
 
   erpc::Nexus nexus(FLAGS_erpc_local_uri, FLAGS_numa_node, 0);
   nexus.register_req_func(kAppReqType, req_handler);
