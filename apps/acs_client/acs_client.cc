@@ -1,19 +1,11 @@
 /**
- * @file acs_capacity_testing.cc
+ * @file acs_client.cc
  *
- * @brief Benchmark to measure large RPC throughput. Each thread measures its
- * RX and TX bandwidth.
+ * @brief ACS capacity testing client.
  *
- * Each thread creates at most one session. Session connectivity is controlled
- * by the "profile" flag. The available profiles are:
- *   o incast: Incast
- *   o victim: With N processes {0, ..., N - 1}, where N >= 3:
- *     o Process 0 and process (N - 1) do not send requests
- *     o All threads on processes 1 through (N - 2) incast to process 0
- *     o Thread T - 1 on processes (N - 2) sends requests to process (N - 1)
  */
 
-#include "acs_capacity_testing.h"
+#include "acs_client.h"
 #include <signal.h>
 #include <cstring>
 #include "util/autorun_helpers.h"
@@ -26,16 +18,7 @@ static constexpr bool kAppClientMemsetReq = false;   // Fill entire request
 static constexpr bool kAppServerMemsetResp = false;  // Fill entire response
 static constexpr bool kAppClientCheckResp = false;   // Check entire response
 
-// Returns whether this process is the server process. True if server uri is
-// what is being listened on.
-bool is_server_process() {
-  return FLAGS_erpc_local_uri == FLAGS_erpc_server_uri;
-}
-
 void connect_sessions_func(AppContext *c) {
-  // All non-zero processes create one session to process #0
-  if (is_server_process()) return;
-
   size_t global_thread_id =
       FLAGS_process_id * FLAGS_num_client_threads + c->thread_id_;
   size_t rem_tid = global_thread_id % FLAGS_num_server_threads;
