@@ -1,0 +1,10 @@
+--test_ms 30000
+--req_size 160
+--resp_size 4800
+--num_processes 2
+--num_server_threads 1
+--concurrency 1
+--numa_0_ports 0
+--numa_1_ports 1
+--erpc_local_uri roce69:31850
+--erpc_server_uri roce69:31850

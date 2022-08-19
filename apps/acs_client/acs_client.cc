@@ -280,8 +280,7 @@ int main(int argc, char **argv) {
   erpc::Nexus nexus(FLAGS_erpc_local_uri, FLAGS_numa_node, 0);
   nexus.register_req_func(kAppReqType, req_handler);
 
-  size_t num_threads = is_server_process() ? FLAGS_num_server_threads
-                                           : FLAGS_num_client_threads;
+  size_t num_threads = FLAGS_num_client_threads;
   std::vector<std::thread> threads(num_threads);
   auto *app_stats = new app_stats_t[num_threads];
 
