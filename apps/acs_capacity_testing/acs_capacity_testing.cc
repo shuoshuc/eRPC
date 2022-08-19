@@ -26,13 +26,19 @@ static constexpr bool kAppClientMemsetReq = false;   // Fill entire request
 static constexpr bool kAppServerMemsetResp = false;  // Fill entire response
 static constexpr bool kAppClientCheckResp = false;   // Check entire response
 
+// Returns whether this process is the server process. True if server uri is
+// what is being listened on.
+bool is_server_process() {
+  return FLAGS_erpc_local_uri == FLAGS_erpc_server_uri;
+}
+
 void connect_sessions_func(AppContext *c) {
   // All non-zero processes create one session to process #0
-  if (FLAGS_process_id == 0) return;
+  if (is_server_process()) return;
 
   size_t global_thread_id =
-      FLAGS_process_id * FLAGS_num_proc_other_threads + c->thread_id_;
-  size_t rem_tid = global_thread_id % FLAGS_num_proc_0_threads;
+      FLAGS_process_id * FLAGS_num_client_threads + c->thread_id_;
+  size_t rem_tid = global_thread_id % FLAGS_num_server_threads;
 
   c->session_num_vec_.resize(1);
 
@@ -229,16 +235,16 @@ void thread_func(size_t thread_id, app_stats_t *app_stats, erpc::Nexus *nexus) {
 
     if (c.thread_id_ == 0) {
       app_stats_t accum_stats;
-      for (size_t i = 0; i < FLAGS_num_proc_other_threads; i++) {
+      for (size_t i = 0; i < FLAGS_num_client_threads; i++) {
         accum_stats += c.app_stats[i];
       }
 
       // Compute averages for non-additive stats
-      accum_stats.rtt_50_us /= FLAGS_num_proc_other_threads;
-      accum_stats.rtt_99_us /= FLAGS_num_proc_other_threads;
-      accum_stats.rpc_50_us /= FLAGS_num_proc_other_threads;
-      accum_stats.rpc_99_us /= FLAGS_num_proc_other_threads;
-      accum_stats.rpc_999_us /= FLAGS_num_proc_other_threads;
+      accum_stats.rtt_50_us /= FLAGS_num_client_threads;
+      accum_stats.rtt_99_us /= FLAGS_num_client_threads;
+      accum_stats.rpc_50_us /= FLAGS_num_client_threads;
+      accum_stats.rpc_99_us /= FLAGS_num_client_threads;
+      accum_stats.rpc_999_us /= FLAGS_num_client_threads;
       c.tmp_stat_->write(accum_stats.to_string());
     }
 
@@ -269,14 +275,14 @@ void thread_func(size_t thread_id, app_stats_t *app_stats, erpc::Nexus *nexus) {
 int main(int argc, char **argv) {
   signal(SIGINT, ctrl_c_handler);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  erpc::rt_assert(FLAGS_concurrency <= kAppMaxConcurrency, "Invalid conc");
+  erpc::rt_assert(FLAGS_concurrency <= kAppMaxConcurrency, "Invalid concurrency");
   erpc::rt_assert(FLAGS_process_id < FLAGS_num_processes, "Invalid process ID");
 
   erpc::Nexus nexus(FLAGS_erpc_local_uri, FLAGS_numa_node, 0);
   nexus.register_req_func(kAppReqType, req_handler);
 
-  size_t num_threads = FLAGS_process_id == 0 ? FLAGS_num_proc_0_threads
-                                             : FLAGS_num_proc_other_threads;
+  size_t num_threads = is_server_process() ? FLAGS_num_server_threads
+                                           : FLAGS_num_client_threads;
   std::vector<std::thread> threads(num_threads);
   auto *app_stats = new app_stats_t[num_threads];
 
