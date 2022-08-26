@@ -18,36 +18,6 @@ static constexpr bool kAppClientMemsetReq = false;   // Fill entire request
 static constexpr bool kAppServerMemsetResp = false;  // Fill entire response
 static constexpr bool kAppClientCheckResp = false;   // Check entire response
 
-// Returns whether this process is the server process. True if server uri is
-// what is being listened on.
-bool is_server_process() {
-  return FLAGS_erpc_local_uri == FLAGS_erpc_server_uri;
-}
-
-void connect_sessions_func(AppContext *c) {
-  // All non-zero processes create one session to process #0
-  if (is_server_process()) return;
-
-  size_t global_thread_id =
-      FLAGS_process_id * FLAGS_num_client_threads + c->thread_id_;
-  size_t rem_tid = global_thread_id % FLAGS_num_server_threads;
-
-  c->session_num_vec_.resize(1);
-
-  printf(
-      "large_rpc_tput: Thread %zu: Creating 1 session to server, thread %zu.\n",
-      c->thread_id_, rem_tid);
-
-  c->session_num_vec_[0] =
-      c->rpc_->create_session(FLAGS_erpc_server_uri, rem_tid);
-  erpc::rt_assert(c->session_num_vec_[0] >= 0, "create_session() failed");
-
-  while (c->num_sm_resps_ != 1) {
-    c->rpc_->run_event_loop(200);  // 200 milliseconds
-    if (ctrl_c_pressed == 1) return;
-  }
-}
-
 void app_cont_func(void *, void *);  // Forward declaration
 
 // Send a request using this MsgBuffer
@@ -153,11 +123,6 @@ void thread_func(size_t thread_id, app_stats_t *app_stats, erpc::Nexus *nexus) {
   rpc.retry_connect_on_invalid_rpc_id_ = true;
 
   c.rpc_ = &rpc;
-
-  // Create the session. Some threads may not create any sessions, and therefore
-  // not run the event loop required for other threads to connect them. This
-  // is OK because all threads will run the event loop below.
-  connect_sessions_func(&c);
 
   if (c.session_num_vec_.size() > 0) {
     printf("large_rpc_tput: Thread %zu: All sessions connected.\n", thread_id);
