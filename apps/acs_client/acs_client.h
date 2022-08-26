@@ -1,5 +1,5 @@
-#ifndef LARGE_RPC_TPUT_H
-#define LARGE_RPC_TPUT_H
+#ifndef ACS_CLIENT_H
+#define ACS_CLIENT_H
 
 #include <gflags/gflags.h>
 #include <signal.h>
