@@ -1,7 +1,6 @@
 --test_ms 30000
 --req_size 160
 --resp_size 4800
---num_processes 2
 --num_server_threads 1
 --num_client_threads 1
 --concurrency 1

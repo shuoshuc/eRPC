@@ -17,8 +17,8 @@ volatile sig_atomic_t ctrl_c_pressed = 0;
 void ctrl_c_handler(int) { ctrl_c_pressed = 1; }
 
 // Flags
-DEFINE_uint64(num_server_threads, 0, "Number of server threads");
-DEFINE_uint64(num_client_threads, 0, "Number of client threads");
+DEFINE_uint64(num_server_threads, 1, "Number of server threads");
+DEFINE_uint64(num_client_threads, 1, "Number of client threads");
 DEFINE_uint64(req_size, 0, "Request data size");
 DEFINE_uint64(resp_size, 0, "Response data size");
 DEFINE_uint64(concurrency, 0, "Concurrent requests per thread");
